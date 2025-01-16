@@ -101,6 +101,7 @@ def export_im_collection(
     return TasksManager(tasks, logger)
 
 def main(env="local"):
+    print(f"Starting export... in {env}")
     initialize_gee(env)
     bucket_name = "crop-identification"
     geometry = ee.Geometry.Point([12.4924, 41.8902])
