@@ -1,13 +1,18 @@
 import ee
-from google.auth import default
 import time
 import random
+from google.auth import default
+import argparse
 
-
-def initialize_gee():
-    credentials, project = default()
-    print(f"Initializing GEE with project {project}")
-    ee.Initialize(credentials, project=project)
+def initialize_gee(env="local"):
+    project = "pw-crop-id-23"
+    if env == "local":
+        ee.Authenticate(auth_mode="localhost", force=True, quiet=False)
+        ee.Initialize(project=project)
+    else:
+        credentials, _ = default()
+        ee.Initialize(credentials=credentials, project=project)
+    print(f"Initialized GEE with project {project}")
 
 class TaskStatus:
     COMPLETED = "COMPLETED"
@@ -95,9 +100,8 @@ def export_im_collection(
         tasks.append(task)
     return TasksManager(tasks, logger)
 
-
-if __name__ == "__main__":
-    initialize_gee()
+def main(env="local"):
+    initialize_gee(env)
     bucket_name = "crop-identification"
     geometry = ee.Geometry.Point([12.4924, 41.8902])
     start_date = "2022-01-01"
@@ -127,3 +131,21 @@ if __name__ == "__main__":
     tasks_manager.poll()
     tasks_manager.get_export_destination()
     print(tasks_manager.paths)
+
+parser = argparse.ArgumentParser(
+    description="EE image collection export example",
+    formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+
+parser.add_argument(
+    "--env",
+    "-e",
+    type=str,
+    help="Environment",
+    required=False,
+    default="local"
+)
+
+
+if __name__ == "__main__":
+    args = parser.parse_args()
+    main(args.env)
